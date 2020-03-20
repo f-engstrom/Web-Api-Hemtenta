@@ -11,7 +11,7 @@ namespace API_Web_API_Kurs.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20200218133415_inital")]
-    partial class inital
+    partial class Inital
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

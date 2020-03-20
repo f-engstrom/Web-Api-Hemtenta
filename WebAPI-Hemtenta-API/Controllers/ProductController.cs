@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using API_Web_API_Kurs.Data;
 using API_Web_API_Kurs.Models;
+using API_Web_API_Kurs.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API_Web_API_Kurs.Controllers
 {
+    [Authorize]
     [Route("api/product")]
     [ApiController]
     public class ProductController : ControllerBase
@@ -21,7 +23,7 @@ namespace API_Web_API_Kurs.Controllers
             _context = context;
         }
 
-      
+
 
 
         // GET: api/Product/5
@@ -88,36 +90,42 @@ namespace API_Web_API_Kurs.Controllers
 
 
         // POST: api/Product
+        [Authorize(Policy = "IsAdministrator")]
         [HttpPost]
-        public IActionResult Post([FromBody] ProductDto productDto)
+        public IActionResult Post(CreateProductDto productDto)
         {
             Product clothing = new Product();
 
-            string urlSulg = productDto.Name.ToLower().Replace(" ", "-");
+            string urlSlug = productDto.Name.ToLower().Replace(" ", "-");
 
             clothing.Name = productDto.Name;
             clothing.Description = productDto.Description;
             clothing.Price = productDto.Price;
             clothing.ImageUrl = productDto.ImageUrl;
-            clothing.UrlSlug = urlSulg;
+            clothing.UrlSlug = urlSlug;
             try
             {
 
                 _context.Add(clothing);
                 _context.SaveChanges();
 
-                foreach (var categoryId in productDto.CategoriesId)
+
+                if (productDto.CategoriesId != null)
                 {
-                    ProductCategory productCategory = new ProductCategory(clothing);
 
-                    var category = _context.Categories.FirstOrDefault(x => x.Id == categoryId);
+                    foreach (var categoryId in productDto.CategoriesId)
+                    {
+                        ProductCategory productCategory = new ProductCategory(clothing);
 
-                    category.Products.Add(productCategory);
-                    _context.SaveChanges();
+                        var category = _context.Categories.FirstOrDefault(x => x.Id == categoryId);
 
+                        category.Products.Add(productCategory);
+                        _context.SaveChanges();
+
+
+                    }
 
                 }
-
 
 
 
@@ -127,17 +135,31 @@ namespace API_Web_API_Kurs.Controllers
                 return BadRequest(e.GetBaseException());
             }
 
-            //return new CreatedResult("https://localhost:44373/api/product", clothing);
+            ProductDto product = new ProductDto();
 
-           return CreatedAtAction(nameof(GetProduct), new { id = clothing.Id }, clothing);
+            product.Id = clothing.Id;
+            product.Name = clothing.Name;
+            product.ImageUrl = clothing.ImageUrl;
+            product.Price = clothing.Price;
+            product.UrlSlug = clothing.UrlSlug;
+            product.Categories = clothing.Categories.Select(c => new Category
+            {
+               Id = c.CategoryId,
+                Name = c.Category.Name,
+
+            }).ToList();
+
+
+
+            return CreatedAtAction(nameof(GetProduct), new { id = clothing.Id }, product);
 
         }
 
-
+        [Authorize(Policy = "IsAdministrator")]
         [HttpDelete("{id}", Name = "DeleteProduct")]
         public IActionResult Delete(int id)
         {
-            Product product  = _context.Products.FirstOrDefault(x => x.Id == id);
+            Product product = _context.Products.FirstOrDefault(x => x.Id == id);
 
             if (product == null)
             {
@@ -159,11 +181,11 @@ namespace API_Web_API_Kurs.Controllers
             return new OkResult();
         }
 
-
+        [Authorize(Policy = "IsAdministrator")]
         [HttpPatch("{id}")]
         public ActionResult Update(int id, JsonPatchDocument<Product> patchDoc)
         {
-            var product = _context.Products.FirstOrDefault(x => x.Id == id);
+            var product = _context.Products.Include(x => x.Categories).FirstOrDefault(x => x.Id == id);
 
 
             if (product == null)

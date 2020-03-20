@@ -1,7 +1,10 @@
 ﻿using System;
 using static System.Console;
+using static WebAPI_Hemtenta.AuthenticationAndAuthorization;
+using static WebAPI_Hemtenta.Program;
 
-namespace WebAPI_Hemtenta
+
+namespace WebAPI_Hemtenta.Categories
 {
     class CategoryMenu
     {
@@ -13,18 +16,15 @@ namespace WebAPI_Hemtenta
             {
 
                 Clear();
+                WriteLine("Press Esc to go back.".PadRight(Program.WindowWidth, '#'));
+                WriteLine("".PadRight(Program.WindowWidth, '#'));
 
-                SetCursorPosition(Program.MenuCursorPosLeft, Program.MenuCursorPosTop);
+                SetCursorPosition(MenuCursorPosLeft, MenuCursorPosTop);
                 WriteLine("1. List Categories");
-                SetCursorPosition(Program.MenuCursorPosLeft, Program.MenuCursorPosTop+1);
+                SetCursorPosition(MenuCursorPosLeft, MenuCursorPosTop + 1);
 
-                WriteLine("2. Add Category");
-                SetCursorPosition(Program.MenuCursorPosLeft, Program.MenuCursorPosTop+2);
-
-                WriteLine("3. Delete Category");
-                SetCursorPosition(Program.MenuCursorPosLeft, Program.MenuCursorPosTop+3);
-
-                WriteLine("4. Exit");
+                WriteLine(IsAdmin ? "2. Add Category":"");
+             
 
                 ConsoleKeyInfo keyPressed = ReadKey(true);
 
@@ -42,21 +42,17 @@ namespace WebAPI_Hemtenta
 
                     case ConsoleKey.D2:
 
-                        Clear();
+                        if (IsAdmin)
+                        {
+                            Clear();
 
 
-                        CategoryAdminMethods.AddCategory();
+                            CategoryAdminMethods.AddCategory();
+
+                        }
                         break;
 
-                    case ConsoleKey.D3:
-
-                        Clear();
-
-
-                        CategoryAdminMethods.DeleteCategory();
-                        break;
-
-                    case ConsoleKey.D4:
+                    case ConsoleKey.Escape:
 
                         Clear();
 

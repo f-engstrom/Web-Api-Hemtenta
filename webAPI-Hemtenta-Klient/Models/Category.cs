@@ -1,4 +1,4 @@
-﻿namespace WebAPI_Hemtenta
+﻿namespace WebAPI_Hemtenta.Models
 {
     internal class Category
     {

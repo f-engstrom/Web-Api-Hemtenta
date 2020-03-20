@@ -1,54 +1,59 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using static WebAPI_Hemtenta.AuthenticationAndAuthorization;
 
 namespace WebAPI_Hemtenta
 {
-    class API
+    class Api
     {
-        static HttpClient client = new HttpClient();
+        static HttpClient _client = new HttpClient();
 
-       public static Uri ProductAPI = new Uri("https://localhost:44373/api/product");
-       public static Uri CategoryAPI = new Uri("https://localhost:44373/api/category");
-
-
-
+        public static Uri ProductApi = new Uri("https://localhost:44373/api/product");
+        public static Uri CategoryApi = new Uri("https://localhost:44373/api/category");
+        public static Uri TokenApi = new Uri("https://localhost:44373/api/token");
 
 
-        public async Task<HttpStatusCode> DeleteResourceAsync(Uri resourceUri,int Id)
+
+
+        public async Task<HttpResponseMessage> DeleteResourceAsync(Uri resourceUri, int id)
         {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token.RawData);
 
-           var response = await client.DeleteAsync($"{resourceUri}/{Id}");
+            var response = await _client.DeleteAsync($"{resourceUri}/{id}");
 
-           return response.StatusCode;
+            return response;
 
         }
 
         public async Task<HttpResponseMessage> PostResourceAsync<T>(Uri resourceUri, T resource)
         {
+           
+
+                _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token.RawData);
 
 
-            HttpResponseMessage response = await client.PostAsJsonAsync(
-                resourceUri, resource);
-
-            response.EnsureSuccessStatusCode();
+                HttpResponseMessage response = await _client.PostAsJsonAsync(
+                    resourceUri, resource);
 
 
             return response;
+
+
 
         }
 
         public async Task<HttpResponseMessage> PatchResourceAsync(Uri resourceUri, HttpContent content)
         {
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token.RawData);
 
 
-            HttpResponseMessage response = await client.PatchAsync(
+            HttpResponseMessage response = await _client.PatchAsync(
                 resourceUri, content);
 
-            response.EnsureSuccessStatusCode();
 
 
             return response;
@@ -56,15 +61,17 @@ namespace WebAPI_Hemtenta
         }
 
 
-        public async Task<List<T>> GetResourceAsync<T>(Uri resourceUri)
+        public async Task<T> GetResourceAsync<T>(Uri resourceUri)
         {
 
-            HttpResponseMessage response = await client.GetAsync(resourceUri);
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Token.RawData);
 
-            response.EnsureSuccessStatusCode();
+
+            HttpResponseMessage response = await _client.GetAsync(resourceUri);
+
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            List<T> deserializedResource = JsonConvert.DeserializeObject<List<T>>(responseBody);
+            var deserializedResource = JsonConvert.DeserializeObject<T>(responseBody);
 
             return deserializedResource;
 

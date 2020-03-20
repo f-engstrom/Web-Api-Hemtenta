@@ -1,14 +1,13 @@
 ﻿using System;
-using WebAPI_Hemtenta.Categories;
-using WebAPI_Hemtenta.Products;
 using static System.Console;
+using static WebAPI_Hemtenta.AuthenticationAndAuthorization;
+using static WebAPI_Hemtenta.Products.ProductAdminMethods;
 using static WebAPI_Hemtenta.Program;
 
-namespace WebAPI_Hemtenta
+namespace WebAPI_Hemtenta.Products
 {
-    class MainMenu
+    class ProductMenu
     {
-
         public static void Menu()
         {
             bool shouldNotExit = true;
@@ -17,18 +16,15 @@ namespace WebAPI_Hemtenta
             {
 
                 Clear();
-
+                WriteLine("Press Esc to go back.".PadRight(Program.WindowWidth, '#'));
+                WriteLine("".PadRight(Program.WindowWidth, '#'));
                 SetCursorPosition(MenuCursorPosLeft, MenuCursorPosTop);
+                WriteLine("1. List Products");
 
-                WriteLine("1. Products");
                 SetCursorPosition(MenuCursorPosLeft, MenuCursorPosTop + 1);
+                WriteLine(IsAdmin? "2. Add Product":"");
 
-                WriteLine("2. Categories");
-                SetCursorPosition(MenuCursorPosLeft, MenuCursorPosTop + 2);
-
-                WriteLine("3. Exit");
-
-
+              
 
                 ConsoleKeyInfo keyPressed = ReadKey(true);
 
@@ -40,18 +36,24 @@ namespace WebAPI_Hemtenta
 
                         Clear();
 
-                        ProductMenu.Menu();
+                        ListProducts();
 
                         break;
 
                     case ConsoleKey.D2:
 
-                        Clear();
-                        CategoryMenu.Menu();
+                        if (IsAdmin)
+                        {
+
+                            Clear();
+
+                            AddProduct(); 
+                        }
 
                         break;
 
-                    case ConsoleKey.D3:
+
+                    case ConsoleKey.Escape:
 
                         Clear();
 
@@ -61,14 +63,9 @@ namespace WebAPI_Hemtenta
 
 
 
-
-
-
                 }
 
             }
         }
-
-
     }
 }

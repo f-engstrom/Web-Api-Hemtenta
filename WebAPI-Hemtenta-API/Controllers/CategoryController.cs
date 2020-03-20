@@ -2,11 +2,14 @@
 using System.Linq;
 using API_Web_API_Kurs.Data;
 using API_Web_API_Kurs.Models;
+using API_Web_API_Kurs.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API_Web_API_Kurs.Controllers
 {
+    [Authorize]
     [Route("api/category")]
     [ApiController]
     public class CategoryController : ControllerBase
@@ -23,29 +26,35 @@ namespace API_Web_API_Kurs.Controllers
 
         // GET: api/Category/5
         [HttpGet("{id}", Name = "GetProductsForCategory")]
-        public JsonResult GetProductsForCategory(int id)
+        public IActionResult GetCategory(int id)
         {
 
-            var productsForCategory = _context.ProductCategories
-                .Include(x => x.Product)
-                .Where(x => x.CategoryId == id)
-                .Include(x => x.Category)
-                .ToList();
+            Category category = _context.Categories.FirstOrDefault(x => x.Id == id);
+
+            if (category == null)
+            {
+                return new BadRequestResult();
+
+            }
 
 
-
-            return new JsonResult(productsForCategory);
+            return new JsonResult(category);
 
 
         }
 
         [HttpGet]
-        public JsonResult Get()
+        public IActionResult Get()
         {
 
             var categories = _context.Categories
                 .ToList();
 
+            if (categories == null)
+            {
+                return new BadRequestResult();
+
+            }
 
 
             return new JsonResult(categories);
@@ -53,15 +62,15 @@ namespace API_Web_API_Kurs.Controllers
 
         }
 
-
+        [Authorize(Policy = "IsAdministrator")]
         [HttpPost]
-        public IActionResult Post(Category category)
+        public IActionResult CreateCategory(CategoryDto categoryDto)
         {
+            Category category = new Category();
+            category.Name = categoryDto.Name;
+            category.UrlSlug = categoryDto.Name.ToLower().Replace(" ", "-");
+            category.ImageUrl = categoryDto.ImageUrl;
 
-
-            string urlSulg = category.Name.ToLower().Replace(" ", "-");
-
-            category.UrlSlug = urlSulg;
 
             try
             {
@@ -75,15 +84,14 @@ namespace API_Web_API_Kurs.Controllers
             }
 
 
-
-            //return new CreatedResult("https://localhost:44373/api/category", category);
-            return CreatedAtAction(nameof(GetProductsForCategory), new { id = category.Id }, category);
+            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
 
 
 
         }
 
-        [HttpDelete("{id}", Name="DeleteCategory")]
+        [Authorize(Policy = "IsAdministrator")]
+        [HttpDelete("{id}", Name = "DeleteCategory")]
         public IActionResult Delete(int id)
         {
             Category category = _context.Categories.FirstOrDefault(x => x.Id == id);
@@ -106,6 +114,25 @@ namespace API_Web_API_Kurs.Controllers
             }
 
             return new OkResult();
+        }
+
+        [Authorize(Policy = "IsAdministrator")]
+        [HttpPatch("{id}")]
+        public ActionResult Update(int id, JsonPatchDocument<Category> patchDoc)
+        {
+            var category = _context.Categories.FirstOrDefault(x => x.Id == id);
+
+
+            if (category == null)
+            {
+                return NotFound(); // 404 Not Found
+            }
+
+            patchDoc.ApplyTo(category);
+
+            _context.SaveChanges();
+
+            return NoContent(); // 204 No Content
         }
 
 

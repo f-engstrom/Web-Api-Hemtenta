@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace WebAPI_Hemtenta
+namespace WebAPI_Hemtenta.Models
 {
    public struct Coordinates
     {

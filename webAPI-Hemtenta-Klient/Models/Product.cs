@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 
-namespace WebAPI_Hemtenta
+namespace WebAPI_Hemtenta.Models
 {
     internal class Product
     {
